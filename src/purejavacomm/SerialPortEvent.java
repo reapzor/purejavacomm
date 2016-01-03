@@ -73,6 +73,10 @@ public class SerialPortEvent extends EventObject {
 	 * Break interrupt.
 	 */
 	public static final int BI = 10;
+	/**
+	 * Port was closed sometime during communication (Fatal or otherwise)
+	 */
+	public static final int PORT_CLOSED = 11;
 
 	private final int eventType;
 	private final boolean newValue;

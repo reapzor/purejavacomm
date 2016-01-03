@@ -77,6 +77,7 @@ public class PureJavaSerialPort extends SerialPort {
 	private volatile boolean m_NotifyOnParityError;
 	private volatile boolean m_NotifyOnFramingError;
 	private volatile boolean m_NotifyOnBreakInterrupt;
+	private volatile boolean m_NotifyOnPortClosed;
 	private volatile boolean m_ThreadRunning;
 	private volatile boolean m_ThreadStarted;
 	private int[] m_ioctl = { 0 };
@@ -120,6 +121,12 @@ public class PureJavaSerialPort extends SerialPort {
 
 		if (m_NotifyOnCD && (((line = TIOCM_CD) & changes) != 0))
 			m_EventListener.serialEvent(new SerialPortEvent(this, SerialPortEvent.CD, (oldstates & line) != 0, (newstates & line) != 0));
+	}
+
+	private void sendClosedPortEvents() {
+		if (m_NotifyOnPortClosed) {
+			m_EventListener.serialEvent(new SerialPortEvent(this, SerialPortEvent.PORT_CLOSED, false, true));
+		}
 	}
 
 	@Override
@@ -274,6 +281,11 @@ public class PureJavaSerialPort extends SerialPort {
 			updateControlLineState(TIOCM_RI);
 		m_NotifyOnRI = x;
 		nudgePipe();
+	}
+
+	synchronized public void notifyOnPortClosed(boolean x) {
+		checkState();
+		m_NotifyOnPortClosed = x;
 	}
 
 	@Override
@@ -717,7 +729,7 @@ public class PureJavaSerialPort extends SerialPort {
 					checkState();
 					if (ioctl(m_FD, FIONREAD, im_Available) < 0) {
 						PureJavaSerialPort.this.close();
-						System.out.println(Native.getLastError());
+						//System.out.println(Native.getLastError());
 						throw new IOException();
 					}
 					return im_Available[0];
@@ -1051,6 +1063,7 @@ public class PureJavaSerialPort extends SerialPort {
 				}
 			}
 			super.close();
+			sendClosedPortEvents();
 		}
 	}
 
@@ -1222,11 +1235,12 @@ public class PureJavaSerialPort extends SerialPort {
 								write = write && FD_ISSET(m_FD, wset);
 							}
 
-							if (m_FD < 0)
+							if (m_FD < 0) {
+								log = log && log(1, "Port Lost! select() or poll() returned %d, errno %d\n", m_FD, errno());
 								break;
+							}
 							if (n < 0) {
 								log = log && log(1, "select() or poll() returned %d, errno %d\n", n, errno());
-								close();
 								break;
 							}
 						} else {
@@ -1242,6 +1256,7 @@ public class PureJavaSerialPort extends SerialPort {
 					}
 				} catch (InterruptedException ie) {
 				} finally {
+					close();
 					m_ThreadRunning = false;
 				}
 			}

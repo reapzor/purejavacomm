@@ -58,6 +58,7 @@ public class TestSuite {
 			Test13.run();
 			Test15.run();
 			Test16.run();
+			//Test17.run();
 			System.out.println("All tests passed OK.");
 		} catch (TestBase.TestFailedException e) {
 			System.out.println("Test failure");

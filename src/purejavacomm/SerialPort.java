@@ -235,6 +235,14 @@ abstract public class SerialPort extends CommPort {
 	public abstract void notifyOnDataAvailable(boolean enable);
 
 	/**
+	 * Express interest in receiving notification when the communications port
+	 * has been lost or closed on you.
+	 *
+	 * @param enable
+	 */
+	public abstract void notifyOnPortClosed(boolean enable);
+
+	/**
 	 * Expresses interest in receiving notification when the DSR (Data Set
 	 * Ready) bit changes.
 	 * <P>
