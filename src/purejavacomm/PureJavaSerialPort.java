@@ -1088,8 +1088,8 @@ public class PureJavaSerialPort extends SerialPort {
 				}
 			}
 			super.close();
-			sendClosedPortEvents();
 		}
+		sendClosedPortEvents();
 	}
 
 	/* package */PureJavaSerialPort(String name, int timeout) throws PortInUseException {
