@@ -10,6 +10,7 @@ import java.util.Enumeration;
  * Created by chuck on 1/2/2016.
  */
 public class Test17 extends TestBase {
+    private static final Object lock = new Object();
     private static TestSerialPortEventListener eventListener = new TestSerialPortEventListener();
 
     private static class TestSerialPortEventListener implements SerialPortEventListener {
@@ -19,6 +20,9 @@ public class Test17 extends TestBase {
         public void serialEvent(SerialPortEvent event) {
             if (event.getEventType() == SerialPortEvent.PORT_CLOSED) {
                 eventReceived = true;
+                synchronized (lock) {
+                    lock.notify();
+                }
             }
         }
     }
@@ -53,7 +57,17 @@ public class Test17 extends TestBase {
                 m_Port.getInputStream().available();
                 fail("Input Stream is still responding. Did you disconnect the correct serial line?");
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                if (eventListener.eventReceived) {
+                    fail("Received port closed event before exception was thrown!");
+                }
+            }
+
+            synchronized (lock) {
+                try {
+                    lock.wait(1000);
+                } catch (InterruptedException e) {}
+            }
 
             if (!eventListener.eventReceived) {
                 fail("Port lost event never fired!");

@@ -33,6 +33,9 @@ package purejavacomm;
 // FIXME move javadoc comments for input stream to SerialPort.java
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.sun.jna.Native;
 
@@ -44,6 +47,7 @@ public class PureJavaSerialPort extends SerialPort {
 	final boolean USE_POLL;
 	final boolean RAW_READ_MODE;
 	private Thread m_Thread;
+	private ScheduledExecutorService executor;
 	private volatile SerialPortEventListener m_EventListener;
 	private volatile OutputStream m_OutputStream;
 	private volatile InputStream m_InputStream;
@@ -80,6 +84,7 @@ public class PureJavaSerialPort extends SerialPort {
 	private volatile boolean m_NotifyOnPortClosed;
 	private volatile boolean m_ThreadRunning;
 	private volatile boolean m_ThreadStarted;
+	private volatile boolean m_PortClosed = true;
 	private int[] m_ioctl = { 0 };
 	private int m_ControlLineStates;
 	// we cache termios in m_Termios because we don't rely on reading it back with tcgetattr()
@@ -124,9 +129,21 @@ public class PureJavaSerialPort extends SerialPort {
 	}
 
 	private void sendClosedPortEvents() {
-		if (m_NotifyOnPortClosed) {
-			m_EventListener.serialEvent(new SerialPortEvent(this, SerialPortEvent.PORT_CLOSED, false, true));
+		if (executor == null || executor.isShutdown()) {
+			return;
 		}
+
+		final PureJavaSerialPort portRef = this;
+		Runnable portNotifyRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (m_EventListener != null && m_NotifyOnPortClosed) {
+					m_EventListener.serialEvent(new SerialPortEvent(portRef, SerialPortEvent.PORT_CLOSED, false, true));
+				}
+				executor.shutdown();
+			}
+		};
+		executor.schedule(portNotifyRunnable, 500, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
@@ -285,12 +302,21 @@ public class PureJavaSerialPort extends SerialPort {
 
 	synchronized public void notifyOnPortClosed(boolean x) {
 		checkState();
+		if (x) {
+			executor = Executors.newSingleThreadScheduledExecutor();
+		}
+		else if (executor != null) {
+			executor.shutdown();
+		}
 		m_NotifyOnPortClosed = x;
 	}
 
 	@Override
 	synchronized public void removeEventListener() {
 		checkState();
+		if (executor != null) {
+			executor.shutdown();
+		}
 		m_EventListener = null;
 	}
 
@@ -1063,8 +1089,11 @@ public class PureJavaSerialPort extends SerialPort {
 				}
 			}
 			super.close();
+		}
+		if (!m_PortClosed) {
 			sendClosedPortEvents();
 		}
+		m_PortClosed = true;
 	}
 
 	/* package */PureJavaSerialPort(String name, int timeout) throws PortInUseException {
@@ -1262,6 +1291,7 @@ public class PureJavaSerialPort extends SerialPort {
 		};
 		m_Thread = new Thread(runnable, getName());
 		m_Thread.setDaemon(true);
+		m_PortClosed = false;
 	}
 
 	synchronized private void updateControlLineState(int line) {
@@ -1324,5 +1354,7 @@ public class PureJavaSerialPort extends SerialPort {
 	public boolean isInternalThreadRunning() {
 		return m_ThreadRunning;
 	}
+
+	public boolean isPortClosed() { return m_PortClosed; }
 
 }
