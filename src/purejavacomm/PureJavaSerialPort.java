@@ -127,7 +127,7 @@ public class PureJavaSerialPort extends SerialPort {
 			m_EventListener.serialEvent(new SerialPortEvent(this, SerialPortEvent.CD, (oldstates & line) != 0, (newstates & line) != 0));
 	}
 
-	private void sendClosedPortEvents() {
+	private void sendPortClosedEvents() {
 		if (executor == null || executor.isShutdown()) {
 			return;
 		}
@@ -1089,7 +1089,7 @@ public class PureJavaSerialPort extends SerialPort {
 			}
 			super.close();
 		}
-		sendClosedPortEvents();
+		sendPortClosedEvents();
 	}
 
 	/* package */PureJavaSerialPort(String name, int timeout) throws PortInUseException {
