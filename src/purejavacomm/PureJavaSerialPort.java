@@ -1236,7 +1236,6 @@ public class PureJavaSerialPort extends SerialPort {
 							}
 
 							if (m_FD < 0) {
-								log = log && log(1, "Port Lost! select() or poll() returned %d, errno %d\n", m_FD, errno());
 								break;
 							}
 							if (n < 0) {
