@@ -84,7 +84,6 @@ public class PureJavaSerialPort extends SerialPort {
 	private volatile boolean m_NotifyOnPortClosed;
 	private volatile boolean m_ThreadRunning;
 	private volatile boolean m_ThreadStarted;
-	private volatile boolean m_PortClosed = true;
 	private int[] m_ioctl = { 0 };
 	private int m_ControlLineStates;
 	// we cache termios in m_Termios because we don't rely on reading it back with tcgetattr()
@@ -1089,11 +1088,8 @@ public class PureJavaSerialPort extends SerialPort {
 				}
 			}
 			super.close();
-		}
-		if (!m_PortClosed) {
 			sendClosedPortEvents();
 		}
-		m_PortClosed = true;
 	}
 
 	/* package */PureJavaSerialPort(String name, int timeout) throws PortInUseException {
@@ -1269,6 +1265,7 @@ public class PureJavaSerialPort extends SerialPort {
 							}
 							if (n < 0) {
 								log = log && log(1, "select() or poll() returned %d, errno %d\n", n, errno());
+								close();
 								break;
 							}
 						} else {
@@ -1284,14 +1281,12 @@ public class PureJavaSerialPort extends SerialPort {
 					}
 				} catch (InterruptedException ie) {
 				} finally {
-					close();
 					m_ThreadRunning = false;
 				}
 			}
 		};
 		m_Thread = new Thread(runnable, getName());
 		m_Thread.setDaemon(true);
-		m_PortClosed = false;
 	}
 
 	synchronized private void updateControlLineState(int line) {
@@ -1354,7 +1349,5 @@ public class PureJavaSerialPort extends SerialPort {
 	public boolean isInternalThreadRunning() {
 		return m_ThreadRunning;
 	}
-
-	public boolean isPortClosed() { return m_PortClosed; }
 
 }
