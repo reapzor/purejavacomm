@@ -311,7 +311,7 @@ public class PureJavaSerialPort extends SerialPort {
 	}
 
 	@Override
-	synchronized public void removeEventListener() {
+	public void removeEventListener() {
 		if (executor != null) {
 			executor.shutdown();
 		}
