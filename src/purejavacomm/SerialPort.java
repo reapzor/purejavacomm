@@ -355,56 +355,7 @@ abstract public class SerialPort extends CommPort {
 	 * The read behavior of the input stream returned by getInputStream depends
 	 * on combination of the threshold and timeout values. The behaviors are
 	 * described in the table below.
-	 * 
-	 * <p>
-	 * 
-	 * <table border="3" cellpadding="4">
-	 * <tr>
-	 * <th colspan="2" align="center">threshold</th>
-	 * <th colspan="2"align="center" >timeout</th>
-	 * <th rowspan="2" align="center">read buffer size</th>
-	 * <th rowspan="2" align="center">read behaviour</th>
-	 * </tr>
-	 * <tr>
-	 * <th align="center">state</th>
-	 * <th align="center">value</th>
-	 * <th align="center">state</th>
-	 * <th align="center">value</th>
-	 * </tr>
-	 * <tr>
-	 * <td align="center">disabled</td>
-	 * <td align="center">-</td>
-	 * <td align="center">disabled</td>
-	 * <td align="center">-</td>
-	 * <td align="center">n bytes</td>
-	 * <td align="left">block until minimum one byte of data is available</td>
-	 * </tr>
-	 * <tr>
-	 * <td align="center">enabled</td>
-	 * <td align="center">m bytes</td>
-	 * <td align="center">disabled</td>
-	 * <td align="center">-</td>
-	 * <td align="center">n bytes</td>
-	 * <td align="left">block until min(m,n) bytes are available</td>
-	 * </tr>
-	 * <tr>
-	 * <td align="center">disabled</td>
-	 * <td align="center">-</td>
-	 * <td align="center">enabled</td>
-	 * <td align="center">x msec</td>
-	 * <td align="center">n bytes</td>
-	 * <td align="left">block for x msec or until any data is available</td>
-	 * </tr>
-	 * <tr>
-	 * <td align="center">enabled</td>
-	 * <td align="center">m bytes</td>
-	 * <td align="center">enabled</td>
-	 * <td align="center">x msec</td>
-	 * <td align="center">n bytes</td>
-	 * <td align="center">block for x msec or until min(m,n) bytes are available
-	 * </td>
-	 * </tr>
-	 * </table>
+	 *
 	 * <p>
 	 * Framing errors may cause the Timeout and Threshold trigger early and to
 	 * complete the read prematurely without raising an exception.

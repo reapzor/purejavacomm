@@ -628,9 +628,9 @@ public class PureJavaSerialPort extends SerialPort {
 	 * 
 	 * 		// then perform raw read, not this may block indefinitely
 	 * 		int n = read(FD, readBuffer, messageLength);
-	 * 		if (n < 0)
+	 * 		if (n less than 0)
 	 * 			errorHandling();
-	 * <code>
+	 * </code>
 	 * </pre>
 	 * 
 	 * @return the native OS file descriptor as int
